@@ -153,6 +153,22 @@ button{touch-action:manipulation}
 @keyframes idraw{to{stroke-dashoffset:0}}
 @keyframes iname{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:none}}
 @keyframes iglow{from{opacity:0;transform:scale(.5)}}
+.tools{display:flex;gap:10px;align-items:center}
+.ib{display:inline-flex;align-items:center;justify-content:center;height:42px;min-width:42px;padding:0;border:0;border-radius:21px;background:var(--field);color:inherit}
+.ib svg{width:22px;height:22px;fill:none;stroke:currentColor;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round}
+.ib[aria-pressed="true"]{background:var(--accent);color:var(--on-accent)}
+.ib.arm{background:#B3261E;color:#fff;padding:0 14px}
+.ib.arm .ilab::after{content:"Tap again";margin-left:6px;font-size:.85em}
+.tray{animation:pop .18s ease}
+.grp{background:none;border-radius:0;padding:0;margin:0;border-bottom:1px solid var(--line)}
+.gt{width:100%;display:flex;align-items:center;gap:10px;border:0;background:none;padding:16px 2px;text-align:left;font-size:1em}
+.gtt{flex:1;font-weight:600}
+.gsum{display:inline-flex;align-items:center;color:var(--muted);font-size:.88em}
+.sdot{width:18px;height:18px;border-radius:50%;display:inline-block;border:1px solid var(--line)}
+.chev{width:8px;height:8px;border-right:2px solid var(--muted);border-bottom:2px solid var(--muted);transform:rotate(45deg);transition:transform .2s ease;margin:0 4px 3px 2px}
+.gt[aria-expanded="true"] .chev{transform:rotate(225deg);margin-bottom:-3px}
+.gb{padding:0 2px 16px;animation:pop .2s ease}
+.gb .gh{margin-bottom:8px}
 @media (prefers-reduced-motion:reduce){*{animation-duration:.01ms!important;transition-duration:.01ms!important}}
 </style>
 </head>
@@ -181,15 +197,17 @@ button{touch-action:manipulation}
     <input id="t" type="text" placeholder="Title" aria-label="Title">
     <textarea id="b" placeholder="Write your note" aria-label="Note text"></textarea>
     <div id="items" hidden></div>
+    <div class="tools">
+      <button id="listb" class="ib" aria-pressed="false" aria-label="Checklist"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 7l2 2 3-3M4 17l2 2 3-3M13 8h7M13 18h7"/></svg></button>
+      <button id="labb" class="ib" aria-pressed="false" aria-label="Labels"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 9h14M5 15h14M10 4L8 20M16 4l-2 16"/></svg></button>
+      <button id="colb" class="ib" aria-pressed="false" aria-label="Note color"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3a9 9 0 1 0 0 18c1.2 0 2-.8 2-1.8 0-.5-.2-.9-.5-1.3-.3-.4-.5-.8-.5-1.3 0-1 .8-1.8 1.8-1.8H17a4 4 0 0 0 4-4C21 6.6 17 3 12 3z"/><circle cx="7.5" cy="11" r="1"/><circle cx="10.5" cy="7.5" r="1"/><circle cx="15" cy="7.5" r="1"/></svg></button>
+      <button id="pinb" class="ib" aria-pressed="false" aria-label="Pin note"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M9 4h6l-1 6 3 3H7l3-3-1-6zM12 13v7"/></svg></button>
+      <button id="del" class="ib" aria-label="Delete note"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 7h14M10 7V4h4v3M7 7l1 13h8l1-13"/></svg><span class="ilab"></span></button>
+    </div>
+    <div id="lw" class="tray" hidden><input id="l" type="text" placeholder="Labels, separated by commas" aria-label="Labels"></div>
+    <div class="row tray" id="sw" hidden></div>
     <div class="row">
       <button id="catb" class="sel" aria-haspopup="listbox" aria-expanded="false"><span id="catv">No category</span><span aria-hidden="true">▾</span></button>
-      <button id="listb" class="btn" aria-pressed="false">Checklist</button>
-    </div>
-    <input id="l" type="text" placeholder="Labels, separated by commas" aria-label="Labels">
-    <div class="row" id="sw"></div>
-    <div class="row">
-      <button id="pinb" class="btn" aria-pressed="false">Pin</button>
-      <button id="del" class="btn">Delete</button>
       <span class="sp"></span>
       <button id="done" class="btn main">Save</button>
     </div>
@@ -313,11 +331,11 @@ function drawItems(focusI){
 function openEd(id){
   if(id){cur=JSON.parse(JSON.stringify(S.notes.filter(function(n){return n.id===id})[0]))}
   else{var l=(cat==='Groceries'||cat==='Daily routine');cur={id:null,title:'',body:'',items:l?[{t:'',d:false}]:[],list:l,labels:[],bg:'',pin:false,cat:cat,updated:0}}
-  armed=false;$('#del').textContent='Delete';$('#del').classList.remove('arm');
+  armed=false;$('#del').classList.remove('arm');
   $('#t').value=cur.title;$('#b').value=cur.body;$('#l').value=cur.labels.join(', ');
   setCat(cur.cat);
-  $('#pinb').setAttribute('aria-pressed',String(cur.pin));$('#pinb').textContent=cur.pin?'Pinned':'Pin';
-  $('#del').hidden=!cur.id;swatches();showMode();openS($('#ed'));
+  $('#pinb').setAttribute('aria-pressed',String(cur.pin));
+  $('#del').hidden=!cur.id;swatches();showMode();$('#lw').hidden=!cur.labels.length;$('#labb').setAttribute('aria-pressed',String(!!cur.labels.length));$('#sw').hidden=true;$('#colb').setAttribute('aria-pressed','false');openS($('#ed'));
   if(!cur.id)setTimeout(function(){$('#t').focus({preventScroll:true})},330);
 }
 function closeEd(){
@@ -349,9 +367,11 @@ $('#listb').addEventListener('click',function(){
 });
 $('#sw').addEventListener('click',function(e){var b=e.target.closest('[data-bg]');if(b){cur.bg=b.getAttribute('data-bg');swatches()}});
 $('#sw').addEventListener('input',function(e){if(e.target.id==='nbgc'){cur.bg=e.target.value;stylePanel()}});
-$('#pinb').addEventListener('click',function(){cur.pin=!cur.pin;this.setAttribute('aria-pressed',String(cur.pin));this.textContent=cur.pin?'Pinned':'Pin'});
+$('#pinb').addEventListener('click',function(){cur.pin=!cur.pin;this.setAttribute('aria-pressed',String(cur.pin))});
+$('#labb').addEventListener('click',function(){var h=$('#lw').hidden;$('#lw').hidden=!h;this.setAttribute('aria-pressed',String(h));if(h)setTimeout(function(){$('#l').focus({preventScroll:true})},60)});
+$('#colb').addEventListener('click',function(){var h=$('#sw').hidden;$('#sw').hidden=!h;this.setAttribute('aria-pressed',String(h))});
 $('#del').addEventListener('click',function(){
-  if(!armed){armed=true;this.textContent='Tap again to delete';this.classList.add('arm');return}
+  if(!armed){armed=true;this.classList.add('arm');return}
   S.notes=S.notes.filter(function(n){return n.id!==cur.id});save();shut($('#ed'));setTimeout(render,200);
 });
 $('#done').addEventListener('click',closeEd);
@@ -405,16 +425,32 @@ function pal(key,list,custom){
   }).join('')+(custom?'<label class="dot pick" aria-label="Custom color"><input type="color" data-ci="'+key+'" value="'+(hex(S.set[key])||'#888888')+'"></label>':'')+'</div>';
 }
 function seg(key,opts){return '<div class="seg">'+opts.map(function(o){return '<button class="sg" data-s="'+key+'" data-v="'+o[0]+'" aria-pressed="'+(String(S.set[key])===String(o[0]))+'">'+o[1]+'</button>'}).join('')+'</div>'}
-function grp(t,k,inner){return '<section class="grp"><div class="gh"><h3>'+t+'</h3><button class="lnk" data-def="'+k+'">Default</button></div>'+inner+'</section>'}
+var openG='';
+function sdot(c){return c?'<i class="sdot" style="background:'+esc(c)+'"></i>':'Default'}
+function sumFor(k){
+  var z=S.set;
+  if(k==='theme')return {auto:'Match phone',light:'Light',dark:'Dark'}[z.theme]||'';
+  if(k==='layout')return z.layout==='list'?'List':'Grid';
+  if(k==='size')return {14:'Small',16:'Medium',19:'Large'}[z.size]||'Medium';
+  if(k==='font')return esc(z.font);
+  if(k==='bg'||k==='ink'||k==='head'||k==='accent')return sdot(z[k]);
+  if(k==='icon')return ICONNAMES[z.icon]||'Classic';
+  if(k==='cats')return S.cats.length+' categories';
+  return '';
+}
+function updSums(){var e=document.querySelectorAll('#st .gsum');for(var i=0;i<e.length;i++)e[i].innerHTML=sumFor(e[i].getAttribute('data-k'))}
+function grp(t,k,inner){var o=(k===openG);return '<section class="grp"><button class="gt" data-tog="'+k+'" aria-expanded="'+o+'"><span class="gtt">'+t+'</span><span class="gsum" data-k="'+k+'">'+sumFor(k)+'</span><i class="chev"></i></button><div class="gb"'+(o?'':' hidden')+'>'+(k==='bk'?'':'<div class="gh"><span></span><button class="lnk" data-def="'+k+'">Default</button></div>')+inner+'</div></section>'}
 function syncSet(){
   var els=document.querySelectorAll('#st [data-s]');
   for(var i=0;i<els.length;i++){var el=els[i],on=String(S.set[el.getAttribute('data-s')])===el.getAttribute('data-v');if(el.classList.contains('dot'))el.classList.toggle('on',on);else el.setAttribute('aria-pressed',String(on))}
   var ci=document.querySelectorAll('#st [data-ci]');
   for(var j=0;j<ci.length;j++){ci[j].value=hex(S.set[ci[j].getAttribute('data-ci')])||'#888888'}
+  updSums();
 }
 function openSet(){
   var fonts='<div class="fl">'+Object.keys(FONTS).map(function(f){return '<button class="fr" data-s="font" data-v="'+f+'" aria-pressed="'+(S.set.font===f)+'"><span style="font-family:\''+f+'\',serif">'+f+(f===DEF.font?' (default)':'')+'</span><i class="rd"></i></button>'}).join('')+'</div>';
   var cats='<div class="cl">'+S.cats.map(function(c){return '<div class="cr"><span>'+esc(c)+'</span><button class="x" data-rc="'+esc(c)+'" aria-label="Remove category '+esc(c)+'">\u2715</button></div>'}).join('')+'</div><div class="row" style="margin-top:8px"><input id="catin" class="field" type="text" placeholder="New category" maxlength="24" aria-label="New category" style="flex:1"><button id="addcat" class="btn">Add</button></div>';
+  var backup='<p class="hint" style="margin-top:0">Copy a backup, send it to yourself (Keep, Gmail, WhatsApp...), then paste it here on another device to bring your notes over.</p><div class="row"><button id="bkcopy" class="btn">Copy backup</button></div><textarea id="bkin" class="field" placeholder="Paste a backup here" style="min-height:80px;margin-top:10px"></textarea><div class="row" style="margin-top:8px"><button id="bkrestore" class="btn">Restore from pasted backup</button></div><p id="bkmsg" class="hint"></p>';
   var icons='<div class="icg">'+Object.keys(ICONS).map(function(k){return '<button class="ic" data-s="icon" data-v="'+k+'" aria-pressed="'+(S.set.icon===k)+'"><img src="'+ICONS[k]+'" alt=""><span>'+ICONNAMES[k]+'</span></button>'}).join('')+'</div><p class="hint">'+iconHint()+'</p>';
   $('#setbody').innerHTML=
     grp('Theme','theme',seg('theme',[['auto','Match phone'],['light','Light'],['dark','Dark']]))+
@@ -427,20 +463,45 @@ function openSet(){
     grp('Notes icon and buttons','accent',pal('accent',ACCS,true))+
     grp('App icon','icon',icons)+
     grp('Categories','cats',cats)+
+    grp('Backup and restore','bk',backup)+
     '<button id="reset" class="reset">Reset everything to default</button>';
   openS($('#st'));
   setTimeout(function(){Object.keys(FONTS).forEach(loadFont)},400);
 }
-$('#gear').addEventListener('click',openSet);
+$('#gear').addEventListener('click',function(){openG='';openSet()});
 $('#stdone').addEventListener('click',function(){shut($('#st'))});
 $('#st').addEventListener('click',function(e){
   if(e.target===$('#st')){shut($('#st'));return}
+  var tg=e.target.closest('[data-tog]');
+  if(tg){var sec=tg.parentNode,body=sec.querySelector('.gb'),was=tg.getAttribute('aria-expanded')==='true',all=document.querySelectorAll('#st .gt');
+    for(var q2=0;q2<all.length;q2++){all[q2].setAttribute('aria-expanded','false');all[q2].parentNode.querySelector('.gb').hidden=true}
+    if(!was){tg.setAttribute('aria-expanded','true');body.hidden=false;openG=tg.getAttribute('data-tog')}else{openG=''}
+    return}
   var b=e.target.closest('[data-s]'),r=e.target.closest('[data-rc]');
   if(b){var k=b.getAttribute('data-s'),v=b.getAttribute('data-v');S.set[k]=k==='size'?+v:v;commit(k!=='layout');syncSet();if(k==='icon')nativeIcon(v);b.classList.remove('bump');void b.offsetWidth;b.classList.add('bump');return}
   var df=e.target.closest('[data-def]');
-  if(df){var dk=df.getAttribute('data-def');if(dk==='cats'){S.cats=DEFCATS.slice();cat='';commit();openSet()}else{S.set[dk]=DEF[dk];commit(dk!=='layout');syncSet();if(dk==='icon')nativeIcon(DEF.icon)}return}
-  if(r){var c=r.getAttribute('data-rc');S.cats=S.cats.filter(function(x){return x!==c});S.notes.forEach(function(n){if(n.cat===c)n.cat=''});if(cat===c)cat='';commit();openSet();return}
-  if(e.target.id==='addcat'){var v2=$('#catin').value.trim();if(v2&&S.cats.indexOf(v2)<0){S.cats.push(v2);commit();openSet()}return}
+  if(df){var dk=df.getAttribute('data-def');if(dk==='cats'){S.cats=DEFCATS.slice();cat='';commit();openG='cats';openSet()}else{S.set[dk]=DEF[dk];commit(dk!=='layout');syncSet();if(dk==='icon')nativeIcon(DEF.icon)}return}
+  if(r){var c=r.getAttribute('data-rc');S.cats=S.cats.filter(function(x){return x!==c});S.notes.forEach(function(n){if(n.cat===c)n.cat=''});if(cat===c)cat='';commit();openG='cats';openSet();return}
+  if(e.target.id==='addcat'){var v2=$('#catin').value.trim();if(v2&&S.cats.indexOf(v2)<0){S.cats.push(v2);commit();openG='cats';openSet()}return}
+  if(e.target.id==='bkcopy'){
+    var json=JSON.stringify({v:1,notes:S.notes,cats:S.cats}),ta=document.createElement('textarea'),ok=false;
+    ta.value=json;ta.style.cssText='position:fixed;opacity:0;top:0';document.body.appendChild(ta);ta.focus();ta.select();
+    try{ok=document.execCommand('copy')}catch(err){}
+    document.body.removeChild(ta);
+    if(ok){$('#bkmsg').textContent='Copied. Paste it somewhere safe, like Keep, Gmail or WhatsApp.'}
+    else{$('#bkin').value=json;$('#bkmsg').textContent='Could not copy automatically. Select all the text in the box above and copy it.'}
+    return}
+  if(e.target.id==='bkrestore'){
+    var m=$('#bkmsg');
+    try{var dd=JSON.parse($('#bkin').value.trim());if(!dd||!Array.isArray(dd.notes))throw 0;
+      var added=0;
+      dd.notes.forEach(function(n){if(!n||!n.id)return;var ix=-1;S.notes.forEach(function(x,jx){if(x.id===n.id)ix=jx});
+        n.labels=n.labels||[];n.items=n.items||[];n.bg=n.bg||'';n.cat=n.cat||'';n.list=!!n.list;
+        if(ix<0){S.notes.push(n);added++}else if((n.updated||0)>(S.notes[ix].updated||0)){S.notes[ix]=n}});
+      (dd.cats||[]).forEach(function(c){if(S.cats.indexOf(c)<0)S.cats.push(c)});
+      save();render();m.textContent='Done. '+added+' new note'+(added===1?'':'s')+' added.';
+    }catch(err2){m.textContent='That does not look like a backup. Copy it again and paste the whole thing.'}
+    return}
   if(e.target.id==='reset'){S.set=Object.assign({},DEF);commit();syncSet();nativeIcon(DEF.icon)}
 });
 var ct;$('#st').addEventListener('input',function(e){var k=e.target.getAttribute('data-ci');if(k){S.set[k]=e.target.value;apply();clearTimeout(ct);ct=setTimeout(save,300)}});
